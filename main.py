@@ -2,6 +2,55 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+IMAGE_PATH = 'note.jpg'
+
+def open_image(img, kernel, iters):
+    '''
+    Docstring for open_image
+
+    Perform Opening morphological operation on image
+    
+    :param img: Value for image to be processed
+    :param kernel: Kernel value to be used in processing image
+    :param iters: number of iterations to perform processing
+    '''
+    return cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel, iterations=iters)
+
+def close_image(img, kernel, iters):
+    '''
+    Docstring for close_image
+
+    Perform Closing morphological operation on image
+    
+    :param img: Value for image to be processed
+    :param kernel: Kernel value to be used in processing image
+    :param iters: number of iterations to perform processing
+    '''
+    return cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=iters)
+
+def erode_image(img, kernel, iters):
+    '''
+    Docstring for erode_image
+
+    Perform Erode morphological operation on image
+    
+    :param img: Value for image to be processed
+    :param kernel: Kernel value to be used in processing image
+    :param iters: number of iterations to perform processing
+    '''
+    return cv2.erode(img, kernel, iterations=iters)
+
+def dilate_image(img, kernel, iters):
+    '''
+    Docstring for dilate_image
+
+    Perform Dilate morphological operation on image
+    
+    :param img: Value for image to be processed
+    :param kernel: Kernel value to be used in processing image
+    :param iters: number of iterations to perform processing
+    '''
+    return cv2.dilate(img, kernel, iterations=iters)
 
 def create_fig(images):
     '''
@@ -31,51 +80,38 @@ def create_fig(images):
 
     fig.canvas.manager.set_window_title("CSC515 Module 5 Critical Thinking 2")
 
-    plt.tight_layout(rect=[0.06, 0, 1, 1])
+    plt.tight_layout()
     plt.show()
 
 def main():
-    image = cv2.imread('note.jpg', cv2.IMREAD_GRAYSCALE)
-    # h, w = image.shape[:2]
-    # width = 600
-    # ratio = width / float(w)
-    # height = int(h * ratio)
-    # iters = 2
-
-    # r_image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
-
-    _, binary_image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
-    # closed_image = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel, iterations=iters)
-    # opened_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel, iterations=iters)
-    # eroded_image = cv2.erode(binary_image, kernel, iterations=iters)
-    # dilated_image = cv2.dilate(binary_image, kernel, iterations=iters)
-
-    closed_a, opened_a, eroded_a, dilated_a, stacked_a = [], [], [], [], []
+    '''
+    Docstring for main
     
-    for iter in range(5):
-        closed_a.append(cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, kernel, iterations=iter+1))
-        opened_a.append(cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel, iterations=iter+1))
-        eroded_a.append(cv2.erode(binary_image, kernel, iterations=iter+1))
-        dilated_a.append(cv2.dilate(binary_image, kernel, iterations=iter+1))
-
+    Process image with mutiple morphological operations performing multiple iterations of the operation and 
+    presenting the results in a subplot grid to be able to compare the output to see what values
+    provided the best results
+    '''
+    # Load image into cv2
+    img = cv2.imread(IMAGE_PATH, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise FileNotFoundError(f'Image not found at {IMAGE_PATH}')
+    # Convert image into binary image
+    _, binary_image = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # create elliptical kernel with 3 x 3 matrix
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    # initilize arrays to store images 
+    closed_a, opened_a, eroded_a, dilated_a = [], [], [], []
+    # process image multiple times to identify most valuable results
+    for iter in range(1,6):
+        closed_a.append(close_image(binary_image, kernel, iter))
+        opened_a.append(open_image(binary_image, kernel, iter))
+        eroded_a.append(erode_image(binary_image, kernel, iter))
+        dilated_a.append(dilate_image(binary_image, kernel, iter))
+    # combine image arrays for most subplot generation
     images_a = closed_a + opened_a + eroded_a + dilated_a
-
+    # generate subplot
     create_fig(images_a)
 
-    # stacked = np.hstack(closed_a)
-    # stacked_a.append(np.hstack(closed_a))
-    # stacked_a.append(np.hstack(opened_a))
-    # stacked_a.append(np.hstack(eroded_a))
-    # stacked_a.append(np.hstack(dilated_a))
-
-    # cv2.imshow('Closed Images', np.vstack(stacked_a))
-    # cv2.imshow('Closed Cursive Image', closed_image)
-    # cv2.imshow('Opened Cursive Image', opened_image)
-    # cv2.imshow('Eroded Cursive Image', eroded_image)
-    # cv2.imshow('Dilated Cursive Image', dilated_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
